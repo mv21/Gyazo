@@ -2,19 +2,6 @@
 
 require 'net/http'
 
-# get id
-user = IO.popen("whoami", "r+").gets.chomp
-program = ARGV[0].to_s
-idfile = "/Users/#{user}/Library/Gyazo/id"
-old_idfile = File.dirname(program) + "/gyazo.app/Contents/Resources/id"
-
-id = ''
-if File.exist?(idfile) then
-  id = File.read(idfile).chomp
-elsif File.exist?(old_idfile) then
-  id = File.read(old_idfile).chomp
-end
-
 # capture png file
 tmpfile = "/tmp/image_upload#{$$}.png"
 imagefile = ARGV[1]
@@ -47,17 +34,13 @@ File.delete(tmpfile)
 # upload
 boundary = '----BOUNDARYBOUNDARY----'
 
-HOST = 'upload.gyazo.com'
-CGI = '/upload.cgi'
-UA   = 'Gyazo/2.0'
+HOST = 'utils.michaelv.co'
+CGI = '/img/upload.php'
+UA   = 'MVGyazoMac/1.0.1'
 
 data = <<EOF
 --#{boundary}\r
-content-disposition: form-data; name="id"\r
-\r
-#{id}\r
---#{boundary}\r
-content-disposition: form-data; name="imagedata"; filename="gyazo.com"\r
+content-disposition: form-data; name="imagedata"; filename="img-upload"\r
 \r
 #{imagedata}\r
 --#{boundary}--\r
@@ -76,20 +59,7 @@ Net::HTTP.start(HOST,80){|http|
     io.write url
     io.close
   }
-  system "open #{url}"
 
-  # save id
-  newid = res.response['X-Gyazo-Id']
-  if newid and newid != "" then
-    if !File.exist?(File.dirname(idfile)) then
-      Dir.mkdir(File.dirname(idfile))
-    end
-    if File.exist?(idfile) then
-      File.rename(idfile, idfile+Time.new.strftime("_%Y%m%d%H%M%S.bak"))
-    end
-    File.open(idfile,"w").print(newid)
-    if File.exist?(old_idfile) then
-      File.delete(old_idfile)
-    end
-  end
+  #easy rce exploit, fix this!
+  system "open #{url}"
 }
