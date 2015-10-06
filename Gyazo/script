@@ -35,7 +35,7 @@ File.delete(tmpfile)
 boundary = '----BOUNDARYBOUNDARY----'
 
 HOST = 'utils.michaelv.co'
-CGI = '/img/upload.php'
+CGI = '/img/'
 UA   = 'MVGyazoMac/1.0.1'
 
 data = <<EOF
@@ -55,11 +55,15 @@ header ={
 Net::HTTP.start(HOST,80){|http|
   res = http.post(CGI,data,header)
   url = res.response.body
+
+  #Copy link to clipboard
   IO.popen("pbcopy","r+"){|io|
     io.write url
     io.close
   }
 
-  #easy rce exploit, fix this!
-  system "open #{url}"
+  #Open link in browser
+  IO.popen(["open", url]) {|open_io|
+    open_io.close
+  }
 }
